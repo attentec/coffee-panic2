@@ -69,9 +69,15 @@ class Scale:
 	
 
 	def _read_scale_usb(self):
-		return self.device.read(self.endpoint.bEndpointAddress,
+		read_attempts = 10
+		while read_attempts > 0:
+			try:
+				return self.device.read(self.endpoint.bEndpointAddress,
                                         self.endpoint.wMaxPacketSize)
-
+			except usb.core.USBError as error:
+				read_attempts -= 1
+		sys.exit("USB ERROR")
+			 
 	
 	def read_scale(self):
 		scale_reading = self._read_scale_usb()

@@ -1,4 +1,4 @@
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 import AWSIoTPythonSDK
 import logging
 import time
@@ -30,14 +30,14 @@ class AwsClient:
 		#logger.addHandler(streamHandler)
 		
 		# Init AWSIoTMQTTClient
-		Client = AWSIoTMQTTClient(clientId)
+		Client = AWSIoTMQTTShadowClient(clientId)
 		Client.configureEndpoint(host, port)
 		Client.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
 		
 		# AWSIoTMQTTClient connection configuration
 		Client.configureAutoReconnectBackoffTime(1, 32, 20)
-		Client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-		Client.configureDrainingFrequency(2)  # Draining: 2 Hz
+		#Client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+		#Client.configureDrainingFrequency(2)  # Draining: 2 Hz
 		Client.configureConnectDisconnectTimeout(10)  # 10 sec
 		Client.configureMQTTOperationTimeout(5)  # 5 sec
 		
@@ -53,7 +53,7 @@ class AwsClient:
 	
 	def subscribe_to_coffee_level_queries(self,callback):
 		self.query_callback = callback
-		self.AWSIoTMQTTClient.subscribe(self.query_topic, 1, self.coffee_level_query_callback)
+		#self.AWSIoTMQTTClient.subscribe(self.query_topic, 1, self.coffee_level_query_callback)
 
 
 	def coffee_level_query_callback(self, client, userdata, encoded_message):
@@ -79,10 +79,13 @@ class AwsClient:
 		self.publish_coffee_message(scale_reading,self.query_topic)
 						
 		
+	def shadow_callback(self, *args):
+		pass
+		
 	def publish_coffee_message(self, scale_reading, topic):
 		message = scale_reading
 		message['unit'] = "gram"
 		message['time'] = str(datetime.datetime.now())
-		messageJson = json.dumps(message)
-		self.AWSIoTMQTTClient.publish(topic, messageJson, 0)
-		print('Published topic %s: %s\n' % (topic, messageJson))
+		messageJson = json.dumps( {'state': {"reported": message } } )
+		shadow_minister = self.AWSIoTMQTTClient.createShadowHandlerWithName("AS-RPI", True)
+		shadow_minister.shadowUpdate(messageJson, self.shadow_callback, 5 )
