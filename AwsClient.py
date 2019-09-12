@@ -18,8 +18,6 @@ class AwsClient:
 		port = 8883
 		clientId = "coffee-panic"
 		self.topic = "stockholm/coffee"
-		self.query_topic = 'stockholm/coffee/query'
-		self.query_callback = None
 
 		# Init AWSIoTMQTTClient
 		Client = AWSIoTMQTTShadowClient(clientId)
@@ -37,25 +35,8 @@ class AwsClient:
 		self.AWSIoTMQTTClient = Client
 
 
-	def subscribe_to_coffee_level_queries(self,callback):
-		self.query_callback = callback
-		#self.AWSIoTMQTTClient.subscribe(self.query_topic, 1, self.coffee_level_query_callback)
-
-
-	def coffee_level_query_callback(self, client, userdata, encoded_message):
-		decoded_message = json.loads(encoded_message.payload.decode('utf-8'))
-		if 'request' in decoded_message and decoded_message['request'] == 'coffee_level':
-			print('Coffee level query')
-			self.query_callback()
-
-
-
 	def publish_weight(self, scale_reading):
 		self.publish_coffee_message(scale_reading,self.topic)
-
-
-	def publish_coffee_level_reply(self, scale_reading):
-		self.publish_coffee_message(scale_reading,self.query_topic)
 
 
 	def publish_coffee_message(self, scale_reading, topic):
