@@ -13,6 +13,35 @@ from signal import pause
 class AwsClient:
 
 	def __init__(self):
+		certificatePath, privateKeyPath = self._get_cert_files()
+		settings =  self._get_settings()
+		host = settings['host_name']
+		rootCAPath = "cert/AmazonRootCA1.pem"
+		port = 8883
+		clientId = "coffee-panic-client"
+
+		# Init AWSIoTMQTTClient
+		client = AWSIoTMQTTShadowClient(clientId)
+		client.configureEndpoint(host, port)
+		client.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
+
+		# AWSIoTMQTTClient connection configuration
+		client.configureAutoReconnectBackoffTime(1, 32, 20)
+		client.configureConnectDisconnectTimeout(10)  # 10 sec
+		client.configureMQTTOperationTimeout(5)  # 5 sec
+
+		# Connect to AWS IoT
+		client.connect()
+
+		self.shadow_handler = client.createShadowHandlerWithName(settings['thing_name'], True)
+
+	def _get_settings(self):
+		with open('./settings.conf') as config_file:
+			settings = json.loads(config_file.read())
+			return settings
+
+
+	def _get_cert_files(self):
 		certificatePath = None
 		privateKeyPath = None
 		certificate_directory = os.listdir('./cert')
@@ -25,39 +54,19 @@ class AwsClient:
 		if not privateKeyPath or not certificatePath:
 			sys.exit("You need to add a certificate and private key file to the cert directory\n"
 				+"Certificate files can be generated at in AWS IoT")
-
-		host = "a4e3a80el53pq-ats.iot.eu-central-1.amazonaws.com"
-		rootCAPath = "cert/AmazonRootCA1.pem"
-		port = 8883
-		clientId = "coffee-panic"
-
-		# Init AWSIoTMQTTClient
-		Client = AWSIoTMQTTShadowClient(clientId)
-		Client.configureEndpoint(host, port)
-		Client.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
-
-		# AWSIoTMQTTClient connection configuration
-		Client.configureAutoReconnectBackoffTime(1, 32, 20)
-		Client.configureConnectDisconnectTimeout(10)  # 10 sec
-		Client.configureMQTTOperationTimeout(5)  # 5 sec
-
-		# Connect to AWS IoT
-		Client.connect()
-
-		self.AWSIoTMQTTClient = Client
+		return (certificatePath, privateKeyPath)
 
 
 	def publish_weight(self, scale_reading):
-		self.publish_coffee_message(scale_reading,self.topic)
+		self.publish_coffee_message(scale_reading)
 
 
 	def shadow_callback(self, *args):
 		pass
 
-	def publish_coffee_message(self, scale_reading, topic):
+	def publish_coffee_message(self, scale_reading):
 		message = scale_reading
 		message['unit'] = "gram"
 		message['time'] = str(datetime.datetime.now())
 		messageJson = json.dumps( {'state': {"reported": message } } )
-		shadow_minister = self.AWSIoTMQTTClient.createShadowHandlerWithName("Coffee-Panic-RPI", True)
-		shadow_minister.shadowUpdate(messageJson, self.shadow_callback, 5 )
+		self.shadow_handler.shadowUpdate(messageJson, self.shadow_callback, 5 )

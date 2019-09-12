@@ -1,10 +1,13 @@
 import usb.core
 import usb.util
+import config
 from time import sleep
 import threading
 from scale import Scale
 from AwsClient import AwsClient
 
+if not config.config_file_exists():
+	config.create_config_file()
 
 dymo_scale = Scale()
 aws_client = AwsClient()
