@@ -4,6 +4,8 @@ import logging
 import time
 import json
 import datetime
+import os
+import sys
 from time import sleep
 from signal import pause
 
@@ -11,12 +13,23 @@ from signal import pause
 class AwsClient:
 
 	def __init__(self):
+		certificatePath = None
+		privateKeyPath = None
+		certificate_directory = os.listdir('./cert')
+		for file in certificate_directory:
+			if file.endswith('pem.crt'):
+				certificatePath = 'cert/' + file
+			elif file.endswith('.pem.key'):
+				privateKeyPath = 'cert/' + file
+
+		if not privateKeyPath or not certificatePath:
+			sys.exit("You need to add a certificate and private key file to the cert directory\n"
+				+"Certificate files can be generated at in AWS IoT")
+
 		host = "a4e3a80el53pq-ats.iot.eu-central-1.amazonaws.com"
 		rootCAPath = "cert/AmazonRootCA1.pem"
-		certificatePath = "cert/AS-RPI.cert.pem"
-		privateKeyPath = "cert/AS-RPI.private.key"
 		port = 8883
-		clientId = "coffee-panic"
+		clientId = "coffee-panic-"
 		self.topic = "stockholm/coffee"
 
 		# Init AWSIoTMQTTClient
@@ -44,5 +57,5 @@ class AwsClient:
 		message['unit'] = "gram"
 		message['time'] = str(datetime.datetime.now())
 		messageJson = json.dumps( {'state': {"reported": message } } )
-		shadow_minister = self.AWSIoTMQTTClient.createShadowHandlerWithName("AS-RPI", True)
+		shadow_minister = self.AWSIoTMQTTClient.createShadowHandlerWithName("Coffee-Panic-RPI", True)
 		shadow_minister.shadowUpdate(messageJson, self.shadow_callback, 5 )
