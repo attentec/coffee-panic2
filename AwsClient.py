@@ -29,8 +29,7 @@ class AwsClient:
 		host = "a4e3a80el53pq-ats.iot.eu-central-1.amazonaws.com"
 		rootCAPath = "cert/AmazonRootCA1.pem"
 		port = 8883
-		clientId = "coffee-panic-"
-		self.topic = "stockholm/coffee"
+		clientId = "coffee-panic"
 
 		# Init AWSIoTMQTTClient
 		Client = AWSIoTMQTTShadowClient(clientId)
@@ -51,6 +50,9 @@ class AwsClient:
 	def publish_weight(self, scale_reading):
 		self.publish_coffee_message(scale_reading,self.topic)
 
+
+	def shadow_callback(self, *args):
+		pass
 
 	def publish_coffee_message(self, scale_reading, topic):
 		message = scale_reading
