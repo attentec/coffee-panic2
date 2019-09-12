@@ -15,7 +15,7 @@ def coffee_level_query():
 	scale_reading = dymo_scale.read_scale()
 	aws_client.publish_coffee_level_reply(scale_reading)
 
-aws_client.subscribe_to_coffee_level_queries(coffee_level_query)	
+aws_client.subscribe_to_coffee_level_queries(coffee_level_query)
 
 
 while True:

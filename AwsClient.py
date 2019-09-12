@@ -21,14 +21,6 @@ class AwsClient:
 		self.query_topic = 'stockholm/coffee/query'
 		self.query_callback = None
 
-		# Configure logging
-		#logger = logging.getLogger("AWSIoTPythonSDK.core")
-		#logger.setLevel(logging.DEBUG)
-		#streamHandler = logging.StreamHandler()
-		#formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-		#streamHandler.setFormatter(formatter)
-		#logger.addHandler(streamHandler)
-
 		# Init AWSIoTMQTTClient
 		Client = AWSIoTMQTTShadowClient(clientId)
 		Client.configureEndpoint(host, port)
@@ -36,17 +28,11 @@ class AwsClient:
 
 		# AWSIoTMQTTClient connection configuration
 		Client.configureAutoReconnectBackoffTime(1, 32, 20)
-		#Client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-		#Client.configureDrainingFrequency(2)  # Draining: 2 Hz
 		Client.configureConnectDisconnectTimeout(10)  # 10 sec
 		Client.configureMQTTOperationTimeout(5)  # 5 sec
 
 		# Connect to AWS IoT
 		Client.connect()
-
-		# Subcribe for logging
-		#Client.subscribe(self.topic, 1, self.log_callback)
-		#Client.subscribe(self.query_topic, 1, self.log_callback)
 
 		self.AWSIoTMQTTClient = Client
 
@@ -63,13 +49,6 @@ class AwsClient:
 			self.query_callback()
 
 
-	def log_callback(self, client, userdata, message):
-		print("Received a new message: ")
-		print(message.payload)
-		print("from topic: ")
-		print(message.topic)
-		print("--------------\n\n")
-
 
 	def publish_weight(self, scale_reading):
 		self.publish_coffee_message(scale_reading,self.topic)
@@ -78,9 +57,6 @@ class AwsClient:
 	def publish_coffee_level_reply(self, scale_reading):
 		self.publish_coffee_message(scale_reading,self.query_topic)
 
-
-	def shadow_callback(self, *args):
-		pass
 
 	def publish_coffee_message(self, scale_reading, topic):
 		message = scale_reading
