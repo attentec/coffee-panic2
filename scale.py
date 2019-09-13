@@ -4,6 +4,7 @@ import usb.util
 from time import sleep
 import time
 import threading
+import sys
 import sched
 
 
