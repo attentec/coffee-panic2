@@ -6,6 +6,7 @@ import time
 import threading
 import sys
 import sched
+import os
 
 
 class Scale:
@@ -54,9 +55,11 @@ class Scale:
 
 
 	def _keep_scale_alive(self):
-		self.keep_alive_scheduler = sched.scheduler(time.time, sleep)
-		self.keep_alive_scheduler.enter(120, 1, self._press_and_schedule_unit_button)
-		threading.Thread(target=self.keep_alive_scheduler.run).start()
+		self.child_pid = os.fork()
+		if self.child_pid == 0:
+			self.keep_alive_scheduler = sched.scheduler(time.time, sleep)
+			self.keep_alive_scheduler.enter(120, 1, self._press_and_schedule_unit_button)
+			self.keep_alive_scheduler.run()
 
 
 	def _init_scale_usb_connection(self):
