@@ -16,8 +16,8 @@ class Scale:
 		self.DATA_MODE_OUNCES = 11
 		self.VENDOR_ID = 0x0922
 		self.PRODUCT_ID = 0x8003
-		self.UNIT_BUTTON_PIN = 4
-		self.POWER_BUTTON_PIN = 17
+		self.UNIT_BUTTON_PIN = 5
+		self.POWER_BUTTON_PIN = 3
 		self.UNIT_BUTTON_PRESS_INTERVAL = 60
 		self._init_scale_gpio_pins()
 		self._start_scale()
@@ -26,7 +26,7 @@ class Scale:
 
 
 	def _init_scale_gpio_pins(self):
-		GPIO.setmode(GPIO.BCM)
+		GPIO.setmode(GPIO.BOARD)
 		GPIO.setup(self.UNIT_BUTTON_PIN,GPIO.OUT)
 		GPIO.setup(self.POWER_BUTTON_PIN,GPIO.OUT)
 
