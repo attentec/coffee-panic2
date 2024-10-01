@@ -16,8 +16,8 @@ class Scale:
 		self.DATA_MODE_OUNCES = 11
 		self.VENDOR_ID = 0x0922
 		self.PRODUCT_ID = 0x8003
-		self.UNIT_BUTTON_PIN = 5
-		self.POWER_BUTTON_PIN = 3
+		self.UNIT_BUTTON_PIN = 12
+		self.POWER_BUTTON_PIN = 8
 		self.UNIT_BUTTON_PRESS_INTERVAL = 60
 		self._init_scale_gpio_pins()
 		self._start_scale()
@@ -101,14 +101,14 @@ class Scale:
 			weight = self._convert_scale_data(scale_reading)
 
 		if scale_reading[1] is 2:
-			status = 'zero'
+			status = "zero"
 		elif scale_reading[1] is 4:
-			status = 'ok'
+			status = "ok"
 		elif scale_reading[1] is 5:
 			weight = -weight
-			status = 'minus'
+			status = "minus"
 		elif scale_reading[1] is 6:
-			status = 'overweight'
+			status = "overweight"
 
-		return {'weight': weight, 'status': status}
+		return {"weight": weight, "status": status}
 
