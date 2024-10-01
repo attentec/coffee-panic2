@@ -1,14 +1,18 @@
 from threading import Timer
 from serial.tools import list_ports
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import serial
 import time
 import boto3
 
 MAX_WEIGHT_G = 2000.0
 CUTOFF_WEIGHT_G = 10.0
+OFFICE_HOUR_START_H = 7
+OFFICE_HOUR_END_H = 18
 
 # Modify this to fit the connected port on your Pi
-arduino = serial.Serial(port="/dev/cu.usbmodem141101", baudrate=9600, timeout=1)
+arduino = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=1)
 
 port = list(list_ports.comports())
 for p in port:
@@ -42,12 +46,16 @@ def print_scales(percent):
     print(out_string, end='\r')
 
 def read_scales():
+    dt = datetime.now(tz = ZoneInfo("Europe/Stockholm"))
+    if dt.weekday() >= 5 or dt.hour not in range(OFFICE_HOUR_START_H, OFFICE_HOUR_END_H + 1):
+        print(f"Skipping: weekend or outside of office hours ({dt})")
+        return
     for page in create_page_iterator():
         for row in page["Rows"]:
             data = row.get("Data")
             weight = float(data[0].get("ScalarValue"))
             percentage_filled = clamp((weight / MAX_WEIGHT_G), 0, 1)
-            # print("\nPercentage filled: " + str(percentage_filled) + "%")
+            print("\nPercentage filled: " + str(percentage_filled*100) + "%")
             arduino_write(round(percentage_filled, 3))
 
 
@@ -57,5 +65,5 @@ class RepeatTimer(Timer):
             self.function(*self.args, **self.kwargs)
 
 read_scales()
-timer = RepeatTimer(10, read_scales)
+timer = RepeatTimer(20, read_scales)
 timer.start()
