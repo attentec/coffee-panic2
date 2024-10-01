@@ -13,6 +13,9 @@
 
 #define ANIM_STEP 0.002
 
+#define ORIENTATION_NORMAL 0
+#define ORIENTATION_INVERTED 1
+
 struct CRGB leds[NUM_LEDS];
 struct CHSV hsvLeds[NUM_LEDS];
 
@@ -22,6 +25,8 @@ float currentPercent = 0.0;
 float hue_interpolation_constant = 1 / (FULL_CUTOFF - EMPTY_CUTOFF);
 
 float percentage = 0;
+
+int orientation = ORIENTATION_NORMAL;
 
 void setup() {
     FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
@@ -73,15 +78,19 @@ void calculateAndSetColors() {
 
     uint8_t current_hue = interpolate_hue(currentPercent);
 
-    // The LED bar is mounted upside down, so the array is populated from the back
     for (int i=0; i<NUM_LEDS; i++) {
+	int index = i;
+        if (orientation == ORIENTATION_INVERTED) {
+            // Populate the array from the back if the LED bar is mounted upside down
+	    index = NUM_LEDS-i-1;
+        }
         if (i < fully_on_leds) {
-            hsvLeds[NUM_LEDS-i-1] = CHSV(current_hue, 255, MAX_BRIGHTNESS);
+            hsvLeds[index] = CHSV(current_hue, 255, MAX_BRIGHTNESS);
         } else if (i == fully_on_leds) {
             // TODO: Set min brightness
-            hsvLeds[NUM_LEDS-i-1] = CHSV(current_hue, 255, max(MIN_BRIGHTNESS, last_led_percentage * MAX_BRIGHTNESS));
+            hsvLeds[index] = CHSV(current_hue, 255, max(MIN_BRIGHTNESS, last_led_percentage * MAX_BRIGHTNESS));
         } else {
-            hsvLeds[NUM_LEDS-i-1] = CHSV(current_hue, 255, MIN_BRIGHTNESS);
+            hsvLeds[index] = CHSV(current_hue, 255, MIN_BRIGHTNESS);
         }
     }
     hsv2rgb_raw(hsvLeds, leds, NUM_LEDS);
