@@ -17,15 +17,14 @@ publish_counter = 0
 if not config.config_file_exists():
     config.create_config_file()
 
-#dymo_scale = Scale()
+dymo_scale = Scale()
 #aws_client = AwsClient()
 api_service = RestApiClient()
 #websocket = WebsocketServer()
 #arduino_client = ArduinoClient()
 
 while True:
-    #scale_reading = dymo_scale.read_scale()
-    scale_reading = {"weight": 573.86, "status": "yes"}
+    scale_reading = dymo_scale.read_scale()
     print(scale_reading)
     #arduino_client.publish_weight(scale_reading)
 
