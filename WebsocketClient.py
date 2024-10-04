@@ -35,7 +35,7 @@ def process_data(data):
     arduino_write(round(percentage_filled, 3))
 
 async def setup_websocket():
-    uri = "ws://localhost:8000"
+    uri = "ws://192.168.244.36:8000"
     async for websocket in connect(uri):
         try:
             print("Opened connection")
