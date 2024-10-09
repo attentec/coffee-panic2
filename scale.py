@@ -11,17 +11,18 @@ import os
 
 class Scale:
 
-	def __init__(self):
+	def __init__(self, external_keep_alive = False):
 		self.DATA_MODE_GRAMS = 2
 		self.DATA_MODE_OUNCES = 11
 		self.VENDOR_ID = 0x0922
 		self.PRODUCT_ID = 0x8003
-		self.UNIT_BUTTON_PIN = 12
-		self.POWER_BUTTON_PIN = 8
+		self.UNIT_BUTTON_PIN = 38
+		self.POWER_BUTTON_PIN = 36
 		self.UNIT_BUTTON_PRESS_INTERVAL = 60
 		self._init_scale_gpio_pins()
 		self._start_scale()
-		self._keep_scale_alive()
+		if not external_keep_alive:
+			self._keep_scale_alive()
 		self._init_scale_usb_connection()
 
 
@@ -48,6 +49,8 @@ class Scale:
 		self._press_button_twice(self.POWER_BUTTON_PIN)
 		sleep(3) # wait for scale to start
 
+	def keep_alive(self):
+		self._press_button_twice(self.UNIT_BUTTON_PIN)
 
 	def _press_and_schedule_unit_button(self):
 		self._press_button_twice(self.UNIT_BUTTON_PIN)
@@ -86,7 +89,7 @@ class Scale:
                                         self.endpoint.wMaxPacketSize)
 			except usb.core.USBError as error:
 				read_attempts -= 1
-		sys.exit("USB ERROR")
+		raise Exception("USB error")
 
 
 	def read_scale(self):
