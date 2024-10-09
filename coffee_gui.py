@@ -1,6 +1,6 @@
 import tkinter as tk
-import datetime
-#from scale import Scale
+import time, datetime
+from scale import Scale
 from api_service import ApiService
 
 USE_FULLSCREEN = False
@@ -28,9 +28,9 @@ def set_error_state(new_state):
         btn_retry.place_forget()
 
 def begin_reading():
-    #global dymo_scale
+    global dymo_scale
     try:
-        #dymo_scale = Scale(external_keep_alive=True)
+        dymo_scale = Scale(external_keep_alive=True)
         root.after(READ_WEIGHT_INTERVAL_MS, read_scale)
         root.after(KEEP_ALIVE_INTERVAL_MS, keep_scale_alive)
         root.after(PUBLISH_WEIGHT_INTERVAL_MS, publish_weight)
@@ -42,9 +42,9 @@ def read_scale():
     global scale_state, in_error_state
     if not in_error_state:
         try:
-            #scale_state = dymo_scale.read_scale()
-            scale_state = {"weight":1456,"timestamp":1728461054}
-            scale_state_variable.set(f'{str(round(scale_state["weight"]))} ml')
+            weight = dymo_scale.read_scale()["weight"]
+            scale_state = {"weight": weight, "timestamp": int(time.time()) }
+            scale_state_variable.set(f'{str(round(weight))} ml')
             root.after(READ_WEIGHT_INTERVAL_MS, read_scale)
         except:
             set_error_state(True)
@@ -52,7 +52,7 @@ def read_scale():
 def keep_scale_alive():
     global in_error_state
     if not in_error_state:
-        #dymo_scale.keep_alive()
+        dymo_scale.keep_alive()
         root.after(KEEP_ALIVE_INTERVAL_MS, keep_scale_alive)
 
 def publish_weight():
